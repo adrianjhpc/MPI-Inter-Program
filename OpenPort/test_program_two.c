@@ -21,35 +21,43 @@ int main(int argc, char **argv){
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
  
-
-  // Waiting for the port file to appear
-  while(looping_on_file){
-    port_file = fopen("port", "r");
-    if(port_file != NULL){
-      looping_on_file = 0;
-    }
-    sleep(2);
-  }
-
-
-  // Read the port from the file
-  position = 0;  
-  while(1) {
-    c = fgetc(port_file);
-    if(feof(port_file) || c == '\n') { 
-      break ;
-    }
-    printf("%c", c);
-    port[position] = c;
-    position++;
-  }
-  fclose(port_file);
+  if(rank == 0){
   
-  printf("Port is %s\n", port);
-  fflush(stdout);
+    // Waiting for the port file to appear
+    while(looping_on_file){
+      port_file = fopen("port", "r");
+      if(port_file != NULL){
+	looping_on_file = 0;
+      }
+      sleep(2);
+    }
+    
+    
+    // Read the port from the file
+    position = 0;  
+    while(1) {
+      c = fgetc(port_file);
+      if(feof(port_file) || c == '\n') { 
+	break ;
+      }
+      printf("%c", c);
+      port[position] = c;
+      position++;
+    }
+    fclose(port_file);
+    
+    printf("Port is %s\n", port);
+    
+    // Remove the port file
+    remove("port");
+    
+  }
 
-  // Remove the port file
-  remove("port");
+  printf("Broadcast of port\n");
+    
+  MPI_Bcast(port, MPI_MAX_PORT_NAME, MPI_CHAR, 0, MPI_COMM_WORLD);
+
+  printf("Attempting to connect to port %s\n", port);
   
   //Establish connection and recieve data
   MPI_Comm_connect(port, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &inter_comm);

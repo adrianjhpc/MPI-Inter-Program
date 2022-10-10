@@ -16,32 +16,40 @@ int main(int argc, char **argv){
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  
-  printf("0: opening ports.\n");fflush(stdout);
-  MPI_Open_port(MPI_INFO_NULL, port);
-  printf("opened port: <%s>\n", port);
-  
-  //Write port file
-  port_file = fopen("port", "w");
-  
-  if(port_file == NULL){
-    printf("Problem opening the port file\n");
-    return 0;
+
+  if(rank == 0){
+    
+    printf("Opening port\n");
+    MPI_Open_port(MPI_INFO_NULL, port);
+    printf("Opened port: <%s>\n", port);
+    
+    //Write port file
+    port_file = fopen("port", "w");
+    
+    if(port_file == NULL){
+      printf("Problem opening the port file\n");
+      return 0;
+    }
+    
+    return_value = fprintf(port_file, "%s", port);
+    
+    if(return_value <= 0){
+      printf("Write of port file failed\n");
+      return 0;
+    }
+    
+    fclose(port_file);
+    
+    printf("Port %s written to file \n", port);
+    fflush(stdout);
+    
   }
+
+  printf("Broadcast of port\n");
   
-  return_value = fprintf(port_file, "%s", port);
+  MPI_Bcast(port, MPI_MAX_PORT_NAME, MPI_CHAR, 0, MPI_COMM_WORLD);
   
-  if(return_value <= 0){
-    printf("Write of port file failed\n");
-    return 0;
-  }
-  
-  fclose(port_file);
-  
-  printf("Port %s written to file \n", port);
-  fflush(stdout);
-  
-  printf("Attempt to accept port.\n");fflush(stdout);
+  printf("Attempt to accept port %s\n", port);
   
   //Establish connection and send data
   MPI_Comm_accept(port, MPI_INFO_NULL, 0, MPI_COMM_WORLD, &inter_comm);
