@@ -1,3 +1,6 @@
 test_program_one
 test_program_two
 *~
+*.out
+*.err
+port
