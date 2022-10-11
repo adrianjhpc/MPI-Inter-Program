@@ -62,9 +62,8 @@ int main(int argc, char **argv){
   printf("Inter Communicator %d %d (%d)\n", inter_size, inter_rank, rank);
   fflush(stdout);
   
-  printf("sending 5 \n");fflush(stdout);
-  //  data = 5;
-  //  MPI_Send(&data, 1, MPI_INT, 0, 0, inter_comm);
+  data = rank;
+  MPI_Send(&data, 1, MPI_INT, rank, 0, inter_comm);
   
   //Barrier on intercomm before disconnecting
   MPI_Barrier(inter_comm);

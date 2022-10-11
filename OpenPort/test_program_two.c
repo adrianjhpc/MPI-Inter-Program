@@ -22,8 +22,6 @@ int main(int argc, char **argv){
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
   sprintf(filename, "port%c", '\0');
-  printf("%s\n", filename);
-  fflush(stdout);
   
   if(rank == 0){
     // Waiting for the port file to appear
@@ -74,10 +72,9 @@ int main(int argc, char **argv){
   printf("Inter Communicator %d %d (%d)\n", inter_size, inter_rank, rank);
   fflush(stdout);
   
-  // MPI_Recv(&data, 1, MPI_INT, 0, 0, inter_comm, &status);
-
-  // printf("Received %d\n", data);
-  //fflush(stdout);  
+  MPI_Recv(&data, 1, MPI_INT, rank, 0, inter_comm, &status);
+  printf("%d received %d\n", rank, data);
+  fflush(stdout);
   
   MPI_Barrier(inter_comm);
   MPI_Comm_disconnect(&inter_comm);
