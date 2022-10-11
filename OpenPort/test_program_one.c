@@ -68,7 +68,9 @@ int main(int argc, char **argv){
   
   //Barrier on intercomm before disconnecting
   MPI_Barrier(inter_comm);
-  MPI_Close_port(port);
+  if(rank == 0){
+    MPI_Close_port(port);
+  }
   MPI_Comm_disconnect(&inter_comm);
 
   MPI_Finalize();
