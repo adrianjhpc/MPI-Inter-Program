@@ -6,7 +6,7 @@
 int main(int argc, char **argv){
   
   int rank, size;
-  int inter_rank, inter_size;
+  int inter_rank, inter_size, other_inter_size;
   char port[MPI_MAX_PORT_NAME];
   char filename[20];
   MPI_Status status;
@@ -71,15 +71,30 @@ int main(int argc, char **argv){
   MPI_Comm_rank(inter_comm, &inter_rank);
   printf("Inter Communicator %d %d (%d)\n", inter_size, inter_rank, rank);
   fflush(stdout);
-  
-  MPI_Recv(&data, 1, MPI_INT, rank, 0, inter_comm, &status);
-  printf("%d received %d\n", rank, data);
-  fflush(stdout);
+ 
+  if(rank == 0){
+     MPI_Recv(&data, 1, MPI_INT, 0, 0, inter_comm, &status);
+     other_inter_size = data;
+     data = size;
+     MPI_Send(&data, 1, MPI_INT, 0, 0, inter_comm);
+     printf("Size of the other MPI_COMM_WORLD is %d\n", other_inter_size);
+  }
+
+  MPI_Bcast(&other_inter_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  if(rank < other_inter_size){ 
+    MPI_Recv(&data, 1, MPI_INT, rank, 0, inter_comm, &status);
+    printf("%d received %d\n", rank, data);
+    fflush(stdout);
+  }
   
   MPI_Barrier(inter_comm);
   MPI_Comm_disconnect(&inter_comm);
 
   MPI_Finalize();
+
+  printf("Finished\n");
+  fflush(stdout);
 
   return 0;
 
