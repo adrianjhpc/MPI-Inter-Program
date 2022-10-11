@@ -61,7 +61,11 @@ int main(int argc, char **argv){
   MPI_Comm_rank(inter_comm, &inter_rank);
   printf("Inter Communicator %d %d (%d)\n", inter_size, inter_rank, rank);
   fflush(stdout);
- 
+
+ // Communicate the size of this programs MPI_COMM_WORLD and receive the size of the other programs MPI_COMM_WORLD
+ // so that we can ensure we both programs only communicate with the minimum size of processes that exist within 
+ // both programs (i.e. if program 1 has 32 processes and program 2 has 15, program 1 only communicates with the first 
+ // 15 of its processes. 
   if(rank == 0){
      data = size;
      MPI_Send(&data, 1, MPI_INT, 0, 0, inter_comm);
@@ -70,6 +74,7 @@ int main(int argc, char **argv){
      printf("Size of the other MPI_COMM_WORLD is %d\n", other_inter_size);  
   }
  
+  // Notify all process of the size of the communicating programs communicator.
   MPI_Bcast(&other_inter_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   if(rank < other_inter_size){

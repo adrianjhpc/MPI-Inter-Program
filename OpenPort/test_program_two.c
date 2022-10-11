@@ -62,6 +62,8 @@ int main(int argc, char **argv){
     fflush(stdout);
   }
 
+  // In theory port should only be required on the root process, but 
+  // testing seems to indicate all processes need a valid port array
   MPI_Bcast(port, MPI_MAX_PORT_NAME, MPI_CHAR, 0,  MPI_COMM_WORLD);
   
   //Establish connection and recieve data
@@ -71,7 +73,11 @@ int main(int argc, char **argv){
   MPI_Comm_rank(inter_comm, &inter_rank);
   printf("Inter Communicator %d %d (%d)\n", inter_size, inter_rank, rank);
   fflush(stdout);
- 
+
+ // Communicate the size of this programs MPI_COMM_WORLD and receive the size of the other programs MPI_COMM_WORLD
+ // so that we can ensure we both programs only communicate with the minimum size of processes that exist within
+ // both programs (i.e. if program 2 has 15 processes and program 1 has 32, program 2 only  expects communicatios from
+ // 15 program 1 processes, not all 32.
   if(rank == 0){
      MPI_Recv(&data, 1, MPI_INT, 0, 0, inter_comm, &status);
      other_inter_size = data;
